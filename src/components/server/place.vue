@@ -1,20 +1,20 @@
 <template>
-  <el-form :model="dynamicValidateForm" ref="dynamicValidateForm" label-width="120px" size="mini" class="demo-dynamic">
-    <el-form-item prop="id" label="id">
-      <el-input v-model="dynamicValidateForm.id" :disabled="true"></el-input>
-    </el-form-item>
-    <el-form-item v-for="(domain, index) in dynamicValidateForm.domains" :label="'禁止购买地域' + index" :key="domain.key" :prop="'domains.' + index + '.value'" :rules="{
+  <div class="place">
+    <el-form :model="dynamicValidateForm" ref="dynamicValidateForm" label-width="120px" size="mini" class="demo-dynamic">
+      <el-form-item prop="id" label="id">
+        <el-input v-model="dynamicValidateForm.id" :disabled="true"></el-input>
+      </el-form-item>
+      <el-form-item v-for="(domain, index) in dynamicValidateForm.domains" :label="'禁止购买地域' + index" :key="domain.key" :prop="'domains.' + index + '.value'" :rules="{
       required: true, message: '域名不能为空', trigger: 'blur'
     }">
-      <el-input v-model="domain.value"></el-input>
-      <el-button @click.prevent="removeDomain(domain)">删除</el-button>
-    </el-form-item>
-    <el-form-item>
-      <el-button type="primary" @click="submitForm('dynamicValidateForm')">提交</el-button>
-      <el-button @click="addDomain">新增域名</el-button>
-      <el-button @click="resetForm('dynamicValidateForm')">重置</el-button>
-    </el-form-item>
-  </el-form>
+        <el-input v-model="domain.value" placeholder="请输入不带“省”和“市”的省份名"></el-input>
+        <el-button @click.prevent="removeDomain(domain)">删除</el-button>
+      </el-form-item>
+      <el-form-item>
+        <el-button @click="addDomain">新增禁止购买地域</el-button>
+      </el-form-item>
+    </el-form>
+  </div>
 </template>
  
 <script>
@@ -55,17 +55,6 @@ export default {
     }
   },
   methods: {
-    submitForm (formName) {
-      this.$refs[formName].validate((valid) => {
-        if (valid) {
-        } else {
-          return false;
-        }
-      });
-    },
-    resetForm (formName) {
-      this.$refs[formName].resetFields();
-    },
     removeDomain (item) {
       var index = this.dynamicValidateForm.domains.indexOf(item)
       if (index !== -1) {
@@ -82,13 +71,19 @@ export default {
 };
 </script>
  
-<style>
+<style lang="scss">
 .el-form-item__label {
   float: unset !important;
-  margin-left: 20px;
+  margin-left: 20px !important;
 }
 .el-form-item__content {
   margin-left: 20px !important;
-  width: 80%;
+  width: 80% !important;
+}
+.el-button:focus,
+.el-button:hover {
+  color: #ff4040 !important;
+  border-color: #ffc6c6 !important;
+  background-color: #ffecec !important;
 }
 </style>

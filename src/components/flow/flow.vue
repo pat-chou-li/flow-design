@@ -16,20 +16,53 @@
         <div class="deliverContainer">
           <img class="deliverImage" src="../../static/deliver.png" alt="">
         </div>
-        <div class="modeContainer">
+        <div class="modelContainer">
           <div class="switch">
             <div class="first">
+              <svg class="icon" v-if="switchFlag == 1">
+                <use xlink:href="#icon-red1"></use>
+              </svg>
+              <svg class="icon" @click="switchPanel(1)" v-else>
+                <use xlink:href="#icon-black1"></use>
+              </svg>
             </div>
+            <div class="deliver"></div>
             <div class="second">
+              <svg class="icon" v-if="switchFlag == 2">
+                <use xlink:href="#icon-red2"></use>
+              </svg>
+              <svg class="icon" @click="switchPanel(2)" v-else>
+                <use xlink:href="#icon-black2"></use>
+              </svg>
             </div>
-            <div class="three">
-
+            <div class="deliver"></div>
+            <div class="third">
+              <svg class="icon" v-if="switchFlag == 3">
+                <use xlink:href="#icon-red3"></use>
+              </svg>
+              <svg class="icon" @click="switchPanel(3)" v-else>
+                <use xlink:href="#icon-black3"></use>
+              </svg>
             </div>
           </div>
           <div class="panel">
-            <div class="first"></div>
-            <div class="second"></div>
-            <div class="three"></div>
+            <div class="first" v-if="switchFlag == 1"></div>
+            <div class="second" v-if="switchFlag == 2">
+              <div class="modelTop">
+                <div class="modelText">可用模板</div>
+                <div class="modelSearch">
+                  <div class="el-icon-search"></div>
+                  <input @input="fliter()" v-model="modelSearchInput" type="text" name="name">
+                </div>
+              </div>
+              <div class="modelBottom">
+                <div class="item" :key="item.id" v-for="(item,index) in currentModelData">
+                  <div class="el-icon-copy-document"></div>
+                  <div class="itemText" @click="chooseModel(index)">{{item.modelName}}</div>
+                </div>
+              </div>
+            </div>
+            <div class="three" v-if="switchFlag == 3"></div>
           </div>
         </div>
       </div>
@@ -37,8 +70,28 @@
         <div id="container"></div>
       </div>
       <div class="right">
-        <div class="title">详细属性</div>
-        <div class="cptContainer"></div>
+        <div class="attr">
+          <div class="title">
+            <div class="titleText">详细属性</div>
+          </div>
+          <div class="cptContainer"></div>
+        </div>
+        <div class="testRes">
+          <div class="resTop">
+            <div class="el-icon-picture-outline-round"></div>
+            <div class="resText">
+              测试结果
+            </div>
+          </div>
+          <div class="resDeliver"></div>
+          <div class="resBottom">
+            {{testRes}}
+          </div>
+        </div>
+        <div class="lastButton">
+          <div class="button test" @click="test()">测试</div>
+          <div class="button next">下一步</div>
+        </div>
       </div>
     </div>
   </div>
@@ -48,13 +101,45 @@
 import { Addon, Graph, Shape } from '@antv/x6';
 import { create } from "@/utils/create.js"
 import place from '../server/place.vue'
+import noAttr from '../server/noAttr.vue'
 const X6 = { Graph }
 export default {
   data () {
     return {
       currentNode: null,
       currentNodeVm: null,
-      serverName: "基金服务"
+      serverName: "基金服务",
+      switchFlag: 2,
+      testRes: '尚未测试',
+      modelSearchInput: '',
+      modelData: [{
+        id: 1,
+        modelName: '余额宝',
+        graph: ''
+      }, {
+        id: 2,
+        modelName: '余额宝',
+        graph: ''
+      }, {
+        id: 3,
+        modelName: '余额宝',
+        graph: ''
+      }, {
+        id: 4,
+        modelName: '余额宝',
+        graph: ''
+      }, {
+        id: 5,
+        modelName: '余额宝',
+        graph: ''
+      }, {
+        id: 6,
+        modelName: '余额宝',
+        graph: ''
+      }
+      ],
+      currentModelData: [],
+      graph: null
     };
   },
 
@@ -64,10 +149,11 @@ export default {
 
   computed: {},
 
+
   mounted: function () {
+    this.initSearch();
     //配置
     const setting = {
-      //设置
       container: document.getElementById('container'),
       height: 730,
       width: 1100,
@@ -79,7 +165,15 @@ export default {
         visible: true
       },
       snapline: true, //对齐线
-      keyboard: true, //启用键盘快捷键
+      //剪切板
+      clipboard: {
+        enabled: true,
+      },
+      //启用键盘快捷键
+      keyboard: {
+        enabled: true,
+        global: true,
+      },
       resizing: {
         enabled: true, //启用大小编辑
       },
@@ -98,6 +192,10 @@ export default {
         pannable: true,
       },
       connecting: {
+        //吸附半径
+        snap: {
+          radius: 20,
+        },
         //不允许链接空白处
         allowBlank: false,
         //不允许重复链接
@@ -115,13 +213,28 @@ export default {
           },
         },
       },
-
     }
     //创建画布
     const graph = new X6.Graph(setting);
-    //渲染数据
-    //graph.fromJSON(this.data)
-    //拖拽生成节点
+    this.graph = graph
+    //启用复制黏贴
+    this.graph.bindKey('ctrl+c', () => {
+      const cells = this.graph.getSelectedCells()
+      if (cells.length) {
+        this.graph.copy(cells)
+      }
+      return false
+    })
+
+    this.graph.bindKey('ctrl+v', () => {
+      if (!this.graph.isClipboardEmpty()) {
+        const cells = this.graph.paste({ offset: 32 })
+        this.graph.cleanSelection()
+        this.graph.select(cells)
+      }
+      return false
+    })
+    //左侧菜单
     const stencil = new Addon.Stencil({
       title: '搜索',
       target: graph,
@@ -157,6 +270,12 @@ export default {
     const start = new Shape.Circle({
       width: 60,
       height: 60,
+      tools: [
+        {
+          name: 'button-remove',  // 工具名称
+          args: { x: 50, y: 5 }, // 工具对应的参数
+        },
+      ],
       attrs: {
         circle: { fill: 'white', strokeWidth: 1, stroke: 'rgba(201, 201, 4, 1)' },
         text: { text: '开始', fill: 'rgba(201, 201, 4, 1)' },
@@ -182,7 +301,11 @@ export default {
             group: 'out',
           }
         ],
-      }
+      },
+      data: {
+        type: '开始',
+        places: []
+      },
     })
     const fail = new Shape.Circle({
       width: 60,
@@ -221,6 +344,12 @@ export default {
         circle: { fill: 'white', strokeWidth: 1, stroke: 'rgba(5, 171, 66, 1)' },
         text: { text: '成功', fill: 'rgba(5, 171, 66, 1)' },
       },
+      tools: [
+        {
+          name: 'button-remove',  // 工具名称
+          args: { x: 50, y: 5 }, // 工具对应的参数
+        },
+      ],
       ports: {
         groups: {
           in: {
@@ -242,11 +371,21 @@ export default {
             group: 'in',
           }
         ],
-      }
+      },
+      data: {
+        type: '成功',
+        places: []
+      },
     })
     const serverStyle = {
       width: 85,
       height: 30,
+      tools: [
+        {
+          name: 'button-remove',  // 工具名称
+          args: { x: 5, y: 5 }, // 工具对应的参数
+        },
+      ],
       ports: {
         groups: {
           in: {
@@ -421,7 +560,7 @@ export default {
         edge.type = false
       }
     })
-    //此处将原子服务加入左侧列表
+    //更改选定节点
     graph.on('node:click', ({ e, x, y, node, view }) => {
       //先保存并销毁上次选中的节点属性
       if (this.currentNode) {
@@ -429,13 +568,18 @@ export default {
         let dom = document.getElementsByClassName('cptContainer')[0];
         dom.innerHTML = ""
       }
-
+      //根据新选择节点创建新组件
       let nodeName = node.attr('text/text');
       if (nodeName == "地域审查") {
+        //第一个参数是组件名,第二个参数是props
         this.currentNodeVm = create(place, { id: node.id, nodeData: node.data })
+        this.currentNode = node
+      } else {
+        this.currentNodeVm = create(noAttr, { id: node.id })
         this.currentNode = node
       }
     })
+    //此处将原子服务加入左侧列表
     stencil.load([start, success], 'group1')
     stencil.load([server1, server2, server3, server4, server5, server6, server7, server8, server9, server10], 'group2')
   },
@@ -446,6 +590,28 @@ export default {
       if (this.currentNode.data.type == "地域审查") {
         this.currentNode.data.places = this.currentNodeVm._data.dynamicValidateForm.domains
       }
+    },
+    switchPanel (target) {
+      this.switchFlag = target
+    },
+    initSearch () {
+      this.currentModelData = this.modelData
+    },
+    fliter () {
+      this.currentModelData = [];
+      let value = this.modelSearchInput;
+      for (let i = 0; i < this.modelData.length; i++) {
+        if (this.modelData[i].modelName.match(value))
+          this.currentModelData.push(this.modelData[i]);
+      }
+    },
+    test () {
+      this.modelData[0].graph = this.graph.toJSON()
+      this.saveData()
+      console.log(this.graph.getNodes()[0].data)
+    },
+    chooseModel (index) {
+      this.graph.fromJSON(this.currentModelData[index].graph)
     }
   }
 }
@@ -454,6 +620,13 @@ export default {
 <style>
 .x6-graph-scroller {
   overflow: hidden !important;
+}
+.icon {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  fill: currentColor;
+  overflow: hidden;
 }
 </style>
 
@@ -509,7 +682,7 @@ export default {
           width: 100%;
         }
       }
-      .modeContainer {
+      .modelContainer {
         height: 26%;
         width: 100%;
         .switch {
@@ -521,6 +694,24 @@ export default {
           box-shadow: -3px -3px 4px rgba(255, 255, 255, 0.5) !important;
           box-shadow: 3px 3px 4px rgba(222, 222, 222, 0.5) !important;
           display: flex;
+          align-items: center;
+          justify-content: center;
+          .first,
+          .second,
+          .third {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .deliver {
+            width: 0px;
+            height: 55%;
+            border: 0.1px solid rgba(217, 87, 87, 1);
+          }
+          .icon {
+            cursor: pointer;
+          }
         }
         .panel {
           width: 90%;
@@ -531,6 +722,75 @@ export default {
           border-radius: 10px;
           box-shadow: -3px -3px 4px rgba(255, 255, 255, 0.5) !important;
           box-shadow: 3px 3px 4px rgba(222, 222, 222, 0.5) !important;
+          .second {
+            height: 100%;
+            width: 100%;
+            .modelTop {
+              padding-left: 1vw;
+              height: 25%;
+              display: flex;
+              .modelText {
+                flex: 1;
+                color: rgba(0, 0, 0, 0.9);
+                font-size: 12px;
+                font-weight: 600;
+                line-height: 4vh;
+              }
+              .modelSearch {
+                height: 100%;
+                flex: 2;
+                display: flex;
+                align-items: center;
+                input {
+                  width: 70%;
+                  margin-left: 0.2vw;
+                  border-color: #878787;
+                  border-style: solid;
+                  border-top-width: 0px;
+                  border-right-width: 0px;
+                  border-bottom-width: 1px;
+                  border-left-width: 0px;
+                }
+                input:focus {
+                  outline: none;
+                  border-color: #878787;
+                  border-style: solid;
+                  border-top-width: 0px;
+                  border-right-width: 0px;
+                  border-bottom-width: 1.5px;
+                  border-left-width: 0px;
+                }
+              }
+            }
+            .modelBottom {
+              height: 60%;
+              width: 95%;
+              overflow: auto;
+              .item {
+                margin-left: 2vw;
+                display: flex;
+                .itemText {
+                  margin-left: 0.5vw;
+                  font-size: 10px;
+                  cursor: pointer;
+                }
+              }
+              &::-webkit-scrollbar-track {
+                -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
+                border-radius: 5px;
+                background-color: rgba(255, 255, 255, 0.8);
+              }
+              &::-webkit-scrollbar {
+                width: 5px;
+                background-color: rgba(0, 0, 0, 0);
+              }
+              &::-webkit-scrollbar-thumb {
+                border-radius: 5px;
+                -webkit-box-shadow: inset 0 0 5px #979090;
+                background-color: #555;
+              }
+            }
+          }
         }
       }
     }
@@ -541,10 +801,94 @@ export default {
     .right {
       height: 100;
       flex: 15;
-      background: skyblue;
-      .title {
-        text-align: center;
-        background: pink;
+      position: relative;
+      .attr {
+        height: 64.5vh;
+        border-radius: 10px 0 0 10px;
+        background: rgba(247, 247, 247, 1);
+        box-shadow: -3px 3px 4px rgba(0, 0, 0, 0.2);
+        z-index: 999;
+        overflow-y: auto;
+        &::-webkit-scrollbar-track {
+          -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
+          border-radius: 5px;
+          background-color: rgba(255, 255, 255, 0.8);
+        }
+        &::-webkit-scrollbar {
+          width: 5px;
+          background-color: rgba(0, 0, 0, 0);
+        }
+        &::-webkit-scrollbar-thumb {
+          border-radius: 5px;
+          -webkit-box-shadow: inset 0 0 5px #979090;
+          background-color: #555;
+        }
+        .title {
+          height: 3.2vh;
+          border-radius: 10px 0 0 0;
+          background: rgba(237, 237, 237, 1);
+          display: flex;
+          justify-content: center;
+          .titleText {
+            width: 33%;
+            text-align: center;
+            font-size: 12px;
+            line-height: 3.2vh;
+            border-bottom: 3px solid rgba(217, 87, 87, 1);
+          }
+        }
+      }
+      .testRes {
+        height: 22.1vh;
+        width: 100%;
+        margin-top: 1vh;
+        padding-top: 1vh;
+        padding-left: 1vw;
+        box-sizing: border-box;
+        border-radius: 10px 0 0 10px;
+        background: rgba(247, 247, 247, 1);
+        box-shadow: -3px 3px 4px rgba(0, 0, 0, 0.2);
+        z-index: 999;
+        .resTop {
+          height: 10%;
+          display: flex;
+          .resText {
+            margin-left: 1vw;
+            font-size: 10px;
+            font-weight: 600;
+          }
+        }
+        .resDeliver {
+          display: block;
+          height: 2px;
+          width: 90%;
+          margin: 7px 0;
+          background-color: #dcdfe6;
+          position: relative;
+        }
+        .resBottom {
+          font-size: 10px;
+        }
+      }
+      .lastButton {
+        height: 5vh;
+        margin-top: 1vh;
+        width: 100%;
+        display: flex;
+        .button {
+          width: 47%;
+          background: rgba(255, 255, 255, 1);
+          box-shadow: -3px 3px 4px rgba(0, 0, 0, 0.2);
+          border-radius: 5px;
+          font-family: '思源黑体';
+          text-align: center;
+          line-height: 5vh;
+          cursor: pointer;
+        }
+        .next {
+          margin-left: 0.5vw;
+          color: rgba(204, 24, 24, 1);
+        }
       }
     }
   }
