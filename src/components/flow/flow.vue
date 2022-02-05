@@ -90,7 +90,7 @@
         </div>
         <div class="lastButton">
           <div class="button test" @click="test()">测试</div>
-          <div class="button next">下一步</div>
+          <div class="button next" @click="finish()">下一步</div>
         </div>
       </div>
     </div>
@@ -304,7 +304,6 @@ export default {
       },
       data: {
         type: '开始',
-        places: []
       },
     })
     const fail = new Shape.Circle({
@@ -374,7 +373,6 @@ export default {
       },
       data: {
         type: '成功',
-        places: []
       },
     })
     const serverStyle = {
@@ -587,8 +585,10 @@ export default {
 
   methods: {
     saveData () {
-      if (this.currentNode.data.type == "地域审查") {
-        this.currentNode.data.places = this.currentNodeVm._data.dynamicValidateForm.domains
+      if (this.currentNode) {
+        if (this.currentNode.data.type == "地域审查") {
+          this.currentNode.data.places = this.currentNodeVm._data.dynamicValidateForm.domains
+        }
       }
     },
     switchPanel (target) {
@@ -609,6 +609,68 @@ export default {
       this.modelData[0].graph = this.graph.toJSON()
       this.saveData()
       console.log(this.graph.getNodes()[0].data)
+    },
+    finish () {
+      this.saveData();
+      let nodes = this.graph.getNodes();
+      let edges = this.graph.getEdges();
+      console.log(nodes)
+      console.log(edges)
+      let map = new Map();
+      //将不存在的失败节点推入map
+      map.set('fail', {
+        'next': null,
+        'failNext': null,
+        'data': { 'type': '失败' },
+        'isEnd': true
+      })
+      let startNode;
+      //初始化所有节点，将id和type加入map
+      for (let i = 0; i < nodes.length; i++) {
+        let id = nodes[i].id;
+        let type = nodes[i].data.type;
+        if (type == '开始') {
+          startNode = id;
+        }
+        if (type == '地域审查') {
+          let banPlaces = [];
+          for (let item of nodes[i].data.places) {
+            banPlaces.push(item.value);
+          }
+          map.set(id, { 'next': null, failNext: 'fail', data: { type, places: banPlaces }, isEnd: false });
+        }
+        else if (type != '成功') {
+          map.set(id, { 'next': null, failNext: 'fail', data: nodes[i].data, isEnd: false });
+        }
+        else {
+          map.set(id, { 'next': null, failNext: null, data: nodes[i].data, isEnd: true });
+        }
+      }
+      for (let i = 0; i < edges.length; i++) {
+        let source = edges[i].store.data.source.cell;
+        let target = edges[i].store.data.target.cell;
+        let type = edges[i].type;
+        if (type == undefined) type = true;
+        //获取节点的data，加入next属性和failNext属性
+        let sourceData = map.get(source);
+        if (type) {
+          sourceData.next = target;
+        }
+        else {
+          sourceData.failNext = target;
+        }
+      }
+      //将map转为object
+      var obj = Object.create(null);
+
+      var iterator = map.keys();
+      for (var i = 0; i < map.size; i++) {
+        var key = iterator.next().value;
+        obj[key] = map.get(key);
+      }
+      let data = JSON.stringify({ startNode, 'states': obj })
+      console.log(data)
+
     },
     chooseModel (index) {
       this.graph.fromJSON(this.currentModelData[index].graph)
