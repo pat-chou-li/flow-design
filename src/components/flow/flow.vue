@@ -703,6 +703,7 @@ export default {
       align-items: center;
       .bank {
         margin-left: 0.67vw;
+        width: 100px;
       }
       .deliver {
         margin-left: 0.8vw;
