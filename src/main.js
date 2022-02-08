@@ -3,14 +3,25 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import { Graph } from '@antv/x6'
-
 import ElementUI from 'element-ui'
-import 'element-ui/lib/theme-chalk/index.css'
+import './element-variables.scss'
 import './static/font'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
 axios.defaults.baseURL = 'http://124.222.21.252:39001'
 axios.defaults.headers.post['Content-Type'] = 'application/json'
+axios.interceptors.request.use(
+	(config) => {
+		let token = window.localStorage.getItem('token')
+		if (token) {
+			config.headers['token'] = token
+		}
+		return config
+	},
+	(error) => {
+		return Promise.reject(error)
+	}
+)
 
 Vue.prototype.$axios = axios
 Vue.use(VueAxios, axios)

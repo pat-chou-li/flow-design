@@ -8,5 +8,7 @@
 * {
   margin: 0;
   padding: 0;
+  font-family: 'Noto Sans SC';
+  font-weight: 500;
 }
 </style>

@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import flow from '../components/flow/flow.vue'
 import login from '../components/login/login.vue'
+import commodity from '../components/commodity/commodity.vue'
 
 Vue.use(VueRouter)
 
@@ -12,9 +13,14 @@ const routes = [
 		component: flow,
 	},
 	{
-		path: '/',
+		path: '/login',
 		name: 'login',
 		component: login,
+	},
+	{
+		path: '/',
+		name: 'commodity',
+		component: commodity,
 	},
 
 	//   {
@@ -31,6 +37,24 @@ const router = new VueRouter({
 	mode: 'history',
 	base: process.env.BASE_URL,
 	routes,
+})
+
+//不需要登录也能访问的路由白名单
+const whiteList = ['/login', '/register', '/addperson']
+router.beforeEach((to, from, next) => {
+	if (!whiteList.includes(to.path)) {
+		const token = window.localStorage.getItem('token')
+		if (!token || token === 'undefined') {
+			Vue.prototype.$message.error('请先登录')
+			next({
+				path: '/login',
+				query: {
+					redirect: to.fullPath,
+				},
+			})
+		}
+	}
+	next()
 })
 
 export default router
