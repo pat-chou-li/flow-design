@@ -1,33 +1,6 @@
 <template>
   <div class="allContainer">
-    <div class="topContainer">
-      <div class="topleftContainer">
-        <img class="bank" src="../../static/bank.png" alt="">
-        <div class="deliver"></div>
-        <img class="back" src="../../static/back.png" alt="">
-        <div class="deliver"></div>
-        <div class="serverText">我的产品</div>
-        <div class="middle"></div>
-        <div class="right">
-          <el-popover placement="top-start" title="我的产品" width="200" trigger="hover" content="在这里可以对产品进行上架、下架、更改、新增、删除等">
-            <div slot="reference">
-              <img src="../../static/帮助.png" alt="">
-            </div>
-          </el-popover>
-          <div class="deliver"></div>
-          <el-dropdown @command="handleCommand">
-            <span class="el-dropdown-link">
-              <i class="el-icon-more el-icon--right dropdown"></i>
-            </span>
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item command="usermsg">用户信息</el-dropdown-item>
-              <el-dropdown-item command="commodity">我的产品</el-dropdown-item>
-              <el-dropdown-item command="logOut" divided>注销</el-dropdown-item>
-            </el-dropdown-menu>
-          </el-dropdown>
-        </div>
-      </div>
-    </div>
+    <mynav :content="'在这里可以对产品进行上架、下架、更改、新增、删除等'" :pageName="'我的产品'"></mynav>
     <div class="bankContainer">
       <img src="../../static/bank.png" alt="">
     </div>
@@ -70,7 +43,7 @@
           </el-dropdown-menu>
         </el-dropdown>
       </div>
-      <div class="sortItem">客户数量
+      <!-- <div class="sortItem">客户数量
         <el-dropdown size="mini">
           <span class="el-dropdown-link">
             <i class="el-icon-arrow-down el-icon--right icon"></i>
@@ -80,21 +53,23 @@
             <el-dropdown-item>降序</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
-      </div>
+      </div> -->
     </div>
     <div class="mainContainer">
-      <div class="mainItem" v-for="(item, index) in currentCommodity" :key="item.commodityID">
+      <div class="mainItem" @click.stop="changeMain(index, item)" v-for="(item, index) in currentCommodity" :key="item.commodityID">
         <div class="top">
           <div class="state" :class="{isPublic:item.isPublished}"></div>
           <div class="text">{{item.commodityName}}</div>
-          <el-popover v-model="deleteVisible[index]" trigger="click" placement="top" width="200">
-            <p>确定删除吗？</p>
-            <div style="text-align: right; margin: 0">
-              <el-button size="mini" @click="_cancel(index)">取消</el-button>
-              <el-button size="mini" type="primary" @click="_delete(index)">确定</el-button>
-            </div>
-            <div slot="reference" class="el-icon-delete delete"></div>
-          </el-popover>
+          <div @click.stop>
+            <el-popover v-model="deleteVisible[index]" popper-append-to-body="false" trigger="click" placement="top" width="200">
+              <p>确定删除吗？</p>
+              <div style="text-align: right; margin: 0">
+                <el-button size="mini" @click="_cancel(index)">取消</el-button>
+                <el-button size="mini" type="primary" @click="_delete(index)">确定</el-button>
+              </div>
+              <div slot="reference" class="el-icon-delete delete"></div>
+            </el-popover>
+          </div>
         </div>
         <div class="date">
           {{(item.showDay)}}
@@ -107,25 +82,140 @@
             {{item.commodityId}}
           </div>
           <div class="buttonContainer">
-            <div class="down btn" :class="{isPubliced:item.isPublished}">
+            <div class="down btn" @click.stop="down(index, item.isPublished)" :class="{isPubliced:item.isPublished}">
               ↓
             </div>
-            <div class="up btn" :class="{isPubliced:!item.isPublished}">
+            <div class="up btn" @click.stop="up(index, item.isPublished)" :class="{isPubliced:!item.isPublished}">
               ↑
             </div>
           </div>
         </div>
       </div>
-      <div class="mainItem add">
+      <div class="mainItem add" @click="addItem()">
         <div class="el-icon-circle-plus-outline"></div>
       </div>
     </div>
     <div class="bottomContainer">
       <div class="block">
-        <el-pagination :current-page="currentPage" @current-change="handleCurrentChange" layout="prev, pager, next" :page-size="9" :total="this.allCommodity.length">
+        <el-pagination :current-page.sync="currentPage" @current-change="handleCurrentChange" layout="prev, pager, next" :page-size="9" :total="this.allCommodity.length">
         </el-pagination>
       </div>
     </div>
+    <el-dialog title="编辑" :visible.sync="dialogVisible" width="24%">
+      <div class="dialog" slot="">
+        <div class="inputItem">
+          <div class="label">产品名称</div>
+          <input type="text" v-model="selectedCommodity.commodityName">
+        </div>
+        <div class="inputItem">
+          <div class="label">风险等级</div>
+          <input type="text" v-model="selectedCommodity.riskLevel">
+        </div>
+        <div class="inputItem">
+          <div class="label">产品编号</div>
+          <input id="number" disabled="disabled" type="text" v-model="selectedCommodity.commodityId">
+        </div>
+        <div class="inputItem">
+          <div class="label">年化利率</div>
+          <input type="text" v-model="selectedCommodity.yearInterestRate">
+        </div>
+        <div class="inputItem">
+          <div class="label">起存金额(元)</div>
+          <input type="text" v-model="selectedCommodity.startMoney">
+        </div>
+        <div class="inputItem">
+          <div class="label">产品期限</div>
+          <input type="text" v-model="selectedCommodity.commodityTimeLimit">
+        </div>
+        <div class="inputItem">
+          <div class="label">单人限额(元)</div>
+          <input type="text" v-model="selectedCommodity.personLimit">
+        </div>
+        <div class="inputItem">
+          <div class="label">单日限额(元)</div>
+          <input type="text" v-model="selectedCommodity.dayLimit">
+        </div>
+        <div class="inputItem">
+          <div class="label">起息日(精确到天)</div>
+          <input type="date" placeholder="20xx-xx-xx" v-model="selectedCommodity.startDay">
+        </div>
+        <div class="inputItem">
+          <div class="label">结息方式</div>
+          <input type="text" v-model="selectedCommodity.interestWay">
+        </div>
+        <div class="inputItem">
+          <div class="label">到期日(精确到天)</div>
+          <input type="date" placeholder="20xx-xx-xx" v-model="selectedCommodity.deadline">
+        </div>
+        <div class="inputItem">
+          <div class="label">递增金额(元)</div>
+          <input type="text" v-model="selectedCommodity.increaseMoney">
+        </div>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <div class="btnContainer">
+          <div class="left" @click="go()">流程编排</div>
+          <div class="right" @click="save()">保存</div>
+        </div>
+      </div>
+    </el-dialog>
+    <el-dialog title="新增" :visible.sync="newDialogVisible" width="24%">
+      <div class="dialog" slot="">
+        <div class="inputItem">
+          <div class="label">产品名称</div>
+          <input type="text" v-model="selectedCommodity.commodityName">
+        </div>
+        <div class="inputItem">
+          <div class="label">风险等级</div>
+          <input type="text" v-model="selectedCommodity.riskLevel">
+        </div>
+        <div class="inputItem">
+          <div class="label">产品编号</div>
+          <input id="number" disabled="disabled" type="text" v-model="selectedCommodity.commodityId">
+        </div>
+        <div class="inputItem">
+          <div class="label">年化利率</div>
+          <input type="text" v-model="selectedCommodity.yearInterestRate">
+        </div>
+        <div class="inputItem">
+          <div class="label">起存金额(元)</div>
+          <input type="text" v-model="selectedCommodity.startMoney">
+        </div>
+        <div class="inputItem">
+          <div class="label">产品期限</div>
+          <input type="text" v-model="selectedCommodity.commodityTimeLimit">
+        </div>
+        <div class="inputItem">
+          <div class="label">单人限额(元)</div>
+          <input type="text" v-model="selectedCommodity.personLimit">
+        </div>
+        <div class="inputItem">
+          <div class="label">单日限额(元)</div>
+          <input type="text" v-model="selectedCommodity.dayLimit">
+        </div>
+        <div class="inputItem">
+          <div class="label">起息日(精确到天)</div>
+          <input type="date" placeholder="20xx-xx-xx" v-model="selectedCommodity.startDay">
+        </div>
+        <div class="inputItem">
+          <div class="label">结息方式</div>
+          <input type="text" v-model="selectedCommodity.interestWay">
+        </div>
+        <div class="inputItem">
+          <div class="label">到期日(精确到天)</div>
+          <input type="date" placeholder="20xx-xx-xx" v-model="selectedCommodity.deadline">
+        </div>
+        <div class="inputItem">
+          <div class="label">递增金额(元)</div>
+          <input type="text" v-model="selectedCommodity.increaseMoney">
+        </div>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <div class="btnContainer new">
+          <div class="right" @click="addItemConfirm()">保存</div>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -139,7 +229,10 @@ export default {
       currentCommodity: [],
       fliterWords: '',
       currentPage: 1,
-      deleteVisible: [false, false, false, false, false, false, false, false, false]
+      deleteVisible: [false, false, false, false, false, false, false, false, false],
+      dialogVisible: false,
+      newDialogVisible: false,
+      selectedCommodity: {}
     };
   },
   mounted: function () {
@@ -149,32 +242,43 @@ export default {
   components: {},
   methods: {
     ...mapMutations(['changeLogin']),
+    go () {
+      let commodityId = this.selectedCommodity.commodityId
+      this.$router.push(`flow/?${commodityId}`)
+    },
+    dateParse (_date) {
+      let date = new Date(_date)
+      let year = date.getFullYear()
+      let month = (date.getMonth() + 1).toString().padStart(2, '0');
+      let day = date.getDate().toString().padStart(2, '0')
+      return year + '-' + month + '-' + day
+    },
     init () {
       this.$axios.get('/admin/getAllCommodity')
         .then(res => {
           this.allCommodity = res.data.data
           for (let i = 0; i < this.allCommodity.length; i++) {
-            let date = new Date(this.allCommodity[i].createdTime)
-            let year = date.getFullYear()
-            let month = date.getMonth() + 1;
-            let day = date.getDate()
-            this.allCommodity[i].showDay = year + '.' + month + '.' + day
-            this.allCommodity[i].percentage = Math.round(Math.random() * 100)
+            this.allCommodity[i].showDay = this.dateParse(this.allCommodity[i].createdTime)
+            this.allCommodity[i].startDay = this.dateParse(this.allCommodity[i].startDay)
+            this.allCommodity[i].deadline = this.dateParse(this.allCommodity[i].deadline)
+            let _now = new Date().getTime() - new Date('2010/1/1').getTime()
+            let _last = new Date(this.allCommodity[i].deadline).getTime() - new Date('2020/1/1').getTime()
+            let per = _last / _now <= 1 ? _last / _now : _now / _last
+            this.allCommodity[i].percentage = Math.abs(per * 100).toFixed(0)
           }
           this.groupCommodity(this.allCommodity)
         })
     },
     _delete (index) {
-      let data = JSON.stringify({ commodityId: this.currentCommodity[index].commodityId + '' })
       this.$axios({
         method: 'get',
         url: '/admin/deleteCommodityById',
-        data: data
+        params: { commodityId: this.currentCommodity[index].commodityId }
       })
         .then(res => {
           if (res.data.code == 200) {
             this.$message.success('删除成功');
-            refresh()
+            this.refresh()
             this._cancel(index)
           }
           else {
@@ -184,8 +288,8 @@ export default {
         })
     },
     refresh () {
-      init()
-      handleCurrentChange(this.currentPage)
+      this.init()
+      this.handleCurrentChange(this.currentPage)
     },
     _cancel (index) {
       this.$set(this.deleteVisible, index, false)
@@ -206,21 +310,15 @@ export default {
         result.push(allCommodity.slice(i, i + 9));
       }
       this.groupedCommodity = result;
-      this.currentCommodity = result[0];
-      console.log(result)
-      this.currentPage = 1
+      if (result.length >= this.currentPage) {
+        this.currentCommodity = result[this.currentPage - 1];
+      } else if (result.length == 1) {
+        this.currentCommodity = result[0]
+      } else {
+        this.currentCommodity = result[this.currentPage - 2]
+      }
+      //   this.currentPage = 1
       return result
-    },
-    handleCommand (command) {
-      if (command == "logOut")
-        this.logOut();
-    },
-    logOut () {
-      window.sessionStorage.clear()
-      window.localStorage.clear()
-      this.$store.commit('changeLogin', { token: '' })
-      this.$message.success('注销成功')
-      this.$router.push('/login')
     },
     sortByCreatedTime (command) {
       if (command == "1") {
@@ -239,7 +337,6 @@ export default {
         )
         this.groupCommodity(this.allCommodity)
       }
-      console.log(this.allCommodity[0])
     },
     sortByPublic () {
       this.allCommodity.sort(
@@ -261,72 +358,98 @@ export default {
       this.currentPage = page
       page--
       this.currentCommodity = this.groupedCommodity[page]
+    },
+    up (index, isPublished) {
+      if (!isPublished) {
+        return
+      }
+      console.log('up')
+    },
+    down (index, isPublished) {
+      if (isPublished) {
+        return
+      }
+      console.log("down")
+    },
+    changeMain (index, item) {
+      this.selectedCommodity = item
+      this.dialogVisible = true
+
+    },
+    handleClose (index) {
+      this.dialogVisible = false
+      this.newDialogVisible = false
+    },
+    save () {
+      this.selectedCommodity.startDay = this.dateParse(this.selectedCommodity.startDay)
+      this.selectedCommodity.deadline = this.dateParse(this.selectedCommodity.deadline)
+      let data = JSON.stringify(this.selectedCommodity)
+      this.$axios.post('/admin/updateCommodity', data)
+        .then(res => {
+          console.log(res)
+          if (res.data.code == 200) {
+            this.$message.success('修改成功')
+            this.dialogVisible = false
+          } else {
+            this.$message.error(res.message)
+          }
+        })
+        .catch(res => {
+          this.$message.error(res.message)
+          this.init()
+        })
+    },
+    addItem () {
+      this.selectedCommodity = {
+        startDay: this.dateParse(new Date()),
+        deadline: this.dateParse(new Date())
+      }
+      this.newDialogVisible = true
+    },
+    addItemConfirm () {
+      this.selectedCommodity.startDay = this.dateParse(this.selectedCommodity.startDay)
+      this.selectedCommodity.deadline = this.dateParse(this.selectedCommodity.deadline)
+      let data = JSON.stringify(this.selectedCommodity)
+      this.$axios.post('/admin/insertCommodity', data)
+        .then(res => {
+          console.log(res)
+          if (res.data.code == 200) {
+            console.log(res)
+            this.$message.success('添加成功')
+            let commodityId = res.data.data.commodityId
+            this.init()
+            this.newDialogVisible = false
+            if (this.currentCommodity.length < 9) {
+              this.currentCommodity.push(this.selectedCommodity)
+            } else {
+              this.init()
+            }
+            //添加成功后询问要不要直接流程编排
+            this.$confirm('是否直接进行流程编排?', '提示', {
+              confirmButtonText: '确定',
+              cancelButtonText: '稍后',
+              type: 'warning'
+            }).then(() => {
+              this.$router.push(`flow/?${commodityId}`)
+            })
+          } else {
+            this.$message.error(res.message)
+          }
+        })
+        .catch(res => {
+          this.$message.error(res.message)
+          this.init()
+        })
     }
-  }
+  },
 }
 
 </script>
 <style lang='scss' scoped>
-* {
+.mainContainer * {
   transition: all 0.5s;
 }
 .allContainer {
-  .topContainer {
-    background: rgba(255, 255, 255, 1);
-    height: 4.3vh;
-    display: flex;
-    .topleftContainer {
-      flex: 2;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      .bank {
-        width: 100px;
-        margin-left: 0.67vw;
-      }
-      .deliver {
-        margin-left: 0.8vw;
-        width: 0px;
-        height: 55%;
-        border: 0.1px solid rgba(217, 87, 87, 1);
-      }
-      .back {
-        height: 2.5vh;
-        margin-left: 0.8vw;
-        cursor: pointer;
-      }
-      .serverText {
-        color: rgba(0, 0, 0, 0.9);
-        font-size: 13px;
-        margin-left: 0.8vw;
-        font-weight: 600;
-      }
-    }
-    .middle {
-      flex: 20;
-    }
-    .right {
-      flex: 1;
-      display: flex;
-      height: 100%;
-      margin-top: 1.8vh;
-      img {
-        width: 18px;
-        height: 18px;
-        cursor: pointer;
-      }
-      .deliver {
-        margin-left: 0.8vw;
-        margin-right: 0.4vw;
-        width: 0px;
-        height: 55%;
-        border: 0.1px solid rgba(217, 87, 87, 1);
-      }
-      .dropdown {
-        cursor: pointer;
-      }
-    }
-  }
   .bankContainer {
     height: 18.6vh;
     display: flex;
@@ -423,6 +546,7 @@ export default {
     box-sizing: border-box;
     padding-left: 5vw;
     .mainItem {
+      cursor: pointer;
       background-color: rgba(255, 255, 255, 1);
       border: 0.5px solid rgba(0, 0, 0, 1);
       box-shadow: -3px -3px 4px rgba(255, 255, 255, 1),
@@ -518,11 +642,61 @@ export default {
     align-items: center;
     justify-content: center;
   }
-}
-</style>
-<style>
-.el-pager li.active {
-  color: red !important;
-  cursor: default;
+  .dialog {
+    display: grid;
+    grid-template-columns: repeat(2, 9vw);
+    grid-template-rows: repeat(6, 12%);
+    grid-row-gap: 3vh;
+    grid-column-gap: 3.5vw;
+    input {
+      width: 100%;
+      height: 60%;
+      box-shadow: -2px -2px 4px rgba(255, 255, 255, 0.5),
+        2px 2px 4px rgba(227, 227, 227, 0.5),
+        -3px -3px 4px rgba(255, 255, 255, 0.78),
+        3px 3px 4px rgba(207, 207, 207, 0.5);
+      border-radius: 10px;
+      border: none;
+      text-align: center;
+    }
+    input:focus {
+      outline: none;
+    }
+    .label {
+      font-size: 9px;
+    }
+    #number {
+      cursor: not-allowed;
+    }
+  }
+  .dialog-footer {
+    .btnContainer {
+      height: 5vh;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 30px;
+      .left,
+      .right {
+        width: 100px;
+        height: 30px;
+        cursor: pointer;
+        line-height: 30px;
+        font-size: 9px;
+        box-shadow: -3px -3px 4px rgba(255, 255, 255, 0.78),
+          3px 3px 4px rgba(207, 207, 207, 0.5);
+        border-radius: 10px;
+        text-align: center;
+      }
+      .left {
+        color: rgba(252, 63, 63, 1);
+      }
+      .right {
+        color: rgba(72, 227, 0, 1);
+      }
+    }
+    .new {
+      justify-content: center;
+    }
+  }
 }
 </style>

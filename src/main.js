@@ -8,6 +8,7 @@ import './element-variables.scss'
 import './static/font'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
+import mynav from './components/mynav/mynav.vue'
 axios.defaults.baseURL = 'http://124.222.21.252:39001'
 axios.defaults.headers.post['Content-Type'] = 'application/json'
 axios.interceptors.request.use(
@@ -25,7 +26,7 @@ axios.interceptors.request.use(
 
 Vue.prototype.$axios = axios
 Vue.use(VueAxios, axios)
-
+Vue.component('mynav', mynav)
 Vue.use(ElementUI)
 
 Vue.config.productionTip = false

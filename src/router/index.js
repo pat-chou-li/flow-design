@@ -22,6 +22,11 @@ const routes = [
 		name: 'commodity',
 		component: commodity,
 	},
+	{
+		path: '/commodity',
+		name: 'commodity',
+		component: commodity,
+	},
 
 	//   {
 	//     path: '/about',

@@ -1,33 +1,6 @@
 <template>
   <div class="allContainer">
-    <div class="topContainer">
-      <div class="topleftContainer">
-        <img class="bank" src="../../static/bank.png" alt="">
-        <div class="deliver"></div>
-        <img class="back" src="../../static/back.png" alt="">
-        <div class="deliver"></div>
-        <div class="serverText">注册/登录</div>
-        <div class="middle"></div>
-        <div class="right">
-          <el-popover placement="top-start" title="注册登录页" width="200" trigger="hover" content="点击注册/登录旁边的窗口可以切换注册/登录">
-            <div slot="reference">
-              <img src="../../static/帮助.png" alt="">
-            </div>
-          </el-popover>
-          <div class="deliver"></div>
-          <el-dropdown>
-            <span class="el-dropdown-link">
-              <i class="el-icon-more el-icon--right dropdown"></i>
-            </span>
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item>用户信息</el-dropdown-item>
-              <el-dropdown-item>我的产品</el-dropdown-item>
-              <el-dropdown-item divided disabled>注销</el-dropdown-item>
-            </el-dropdown-menu>
-          </el-dropdown>
-        </div>
-      </div>
-    </div>
+    <mynav :content="'点击注册/登录旁边的橙色卡片，可以切换至登录/注册'" :pageName="'注册/登录'"></mynav>
     <div class="bac"></div>
     <div class="fixedCard" @click="changeReg()" :class="{fixedCardIsReg:isReg}">
       <div class="left">
@@ -139,7 +112,7 @@ import { mapMutations } from 'vuex';
 export default {
   data () {
     return {
-      isReg: true,
+      isReg: false,
       loginAccount: '',
       loginPassword: '',
       regAccount: '',
@@ -185,7 +158,7 @@ export default {
             })
           } else {
             this.$router.replace({
-              path: "/home"
+              path: "/commodity"
             })
           }
           _this.$message.success('登录成功')
