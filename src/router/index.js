@@ -3,6 +3,7 @@ import VueRouter from 'vue-router'
 import flow from '../components/flow/flow.vue'
 import login from '../components/login/login.vue'
 import commodity from '../components/commodity/commodity.vue'
+import home from '../components/home/home'
 
 Vue.use(VueRouter)
 
@@ -19,8 +20,13 @@ const routes = [
 	},
 	{
 		path: '/',
-		name: 'commodity',
-		component: commodity,
+		name: 'home',
+		component: home,
+	},
+	{
+		path: '/home',
+		name: 'home',
+		component: home,
 	},
 	{
 		path: '/commodity',
@@ -39,13 +45,13 @@ const routes = [
 ]
 
 const router = new VueRouter({
-	mode: 'history',
+	//mode: 'history',
 	base: process.env.BASE_URL,
 	routes,
 })
 
 //不需要登录也能访问的路由白名单
-const whiteList = ['/login', '/register', '/addperson']
+const whiteList = ['/login', '/register', '/home', '/']
 router.beforeEach((to, from, next) => {
 	if (!whiteList.includes(to.path)) {
 		const token = window.localStorage.getItem('token')

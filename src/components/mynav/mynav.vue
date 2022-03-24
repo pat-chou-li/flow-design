@@ -4,12 +4,12 @@
     <div class="topleftContainer">
       <img class="bank" src="../../static/bank.png" alt="">
       <div class="deliver"></div>
-      <img class="back" src="../../static/back.png" alt="">
+      <img @click="back()" class="back" src="../../static/back.png" alt="">
       <div class="deliver"></div>
       <div class="serverText">{{pageName}}</div>
       <div class="middle"></div>
       <div class="right">
-        <el-popover placement="top-start" title="我的产品" width="200" trigger="hover" :content="content">
+        <el-popover placement="top-start" :title="pageName" width="200" trigger="hover" :content="content">
           <div slot="reference">
             <img src="../../static/帮助.png" alt="">
           </div>
@@ -20,7 +20,8 @@
             <i class="el-icon-more el-icon--right dropdown"></i>
           </span>
           <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item command="usermsg">用户信息</el-dropdown-item>
+            <el-dropdown-item command="home">首页</el-dropdown-item>
+            <!-- <el-dropdown-item command="usermsg">用户信息</el-dropdown-item> -->
             <el-dropdown-item command="commodity">我的产品</el-dropdown-item>
             <el-dropdown-item command="logOut" divided>注销</el-dropdown-item>
           </el-dropdown-menu>
@@ -41,9 +42,15 @@ export default {
   components: {},
 
   methods: {
+    back () {
+      this.$router.back(-1)
+    },
     handleCommand (command) {
       if (command == "logOut")
         this.logOut();
+      if (command == "home") {
+        this.backHome();
+      }
     },
     logOut () {
       window.sessionStorage.clear()
@@ -52,6 +59,9 @@ export default {
       this.$message.success('注销成功')
       this.$router.push('/login')
     },
+    backHome () {
+      this.$router.push('/home')
+    }
   }
 }
 

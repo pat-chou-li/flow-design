@@ -75,17 +75,17 @@
           {{(item.showDay)}}
         </div>
         <div class="middle">
-          <el-progress type="circle" :width="40" :stroke-width="2" color="rgba(255, 106, 0, 1)" :percentage="item.percentage"></el-progress>
+          <el-progress type="circle" :width="40" :stroke-width="2" color="rgba(255, 106, 0, 1)" :percentage="parseFloat(item.percentage)"></el-progress>
         </div>
         <div class="bottom">
           <div class="text">
             {{item.commodityId}}
           </div>
           <div class="buttonContainer">
-            <div class="down btn" @click.stop="down(index, item.isPublished)" :class="{isPubliced:item.isPublished}">
+            <div class="down btn" @click.stop="down(index, item.isPublished)" :class="{isPubliced:!item.isPublished}">
               ↓
             </div>
-            <div class="up btn" @click.stop="up(index, item.isPublished)" :class="{isPubliced:!item.isPublished}">
+            <div class="up btn" @click.stop="up(index, item.isPublished)" :class="{isPubliced:item.isPublished}">
               ↑
             </div>
           </div>
@@ -244,7 +244,7 @@ export default {
     ...mapMutations(['changeLogin']),
     go () {
       let commodityId = this.selectedCommodity.commodityId
-      this.$router.push(`flow/?${commodityId}`)
+      this.$router.push(`flow/?id=${commodityId}`)
     },
     dateParse (_date) {
       let date = new Date(_date)
@@ -254,7 +254,7 @@ export default {
       return year + '-' + month + '-' + day
     },
     init () {
-      this.$axios.get('/admin/getAllCommodity')
+      this.$axios.get('1/admin/getAllCommodity')
         .then(res => {
           this.allCommodity = res.data.data
           for (let i = 0; i < this.allCommodity.length; i++) {
@@ -272,7 +272,7 @@ export default {
     _delete (index) {
       this.$axios({
         method: 'get',
-        url: '/admin/deleteCommodityById',
+        url: '1/admin/deleteCommodityById',
         params: { commodityId: this.currentCommodity[index].commodityId }
       })
         .then(res => {
@@ -360,16 +360,54 @@ export default {
       this.currentCommodity = this.groupedCommodity[page]
     },
     up (index, isPublished) {
-      if (!isPublished) {
-        return
-      }
-      console.log('up')
-    },
-    down (index, isPublished) {
       if (isPublished) {
         return
       }
-      console.log("down")
+      let data = {
+        commodityId: this.currentCommodity[index].commodityId,
+        isPublished: 1
+      }
+      data = JSON.stringify(data)
+      console.log(data)
+      this.$axios.post('1/admin/updateCommodity', data)
+        .then(res => {
+          if (res.data.code == 200) {
+            this.currentCommodity[index].isPublished = 1
+            this.$message.success('上架成功')
+          } else {
+            this.$message.error(res.message)
+          }
+        })
+        .catch(res => {
+          console.log(res)
+          this.$message.error(res.message)
+          this.init()
+        })
+    },
+    down (index, isPublished) {
+      if (!isPublished) {
+        return
+      }
+      let data = {
+        commodityId: this.currentCommodity[index].commodityId,
+        isPublished: 0
+      }
+      data = JSON.stringify(data)
+      console.log(data)
+      this.$axios.post('1/admin/updateCommodity', data)
+        .then(res => {
+          if (res.data.code == 200) {
+            this.currentCommodity[index].isPublished = 0
+            this.$message.success('下架成功')
+          } else {
+            this.$message.error(res.message)
+          }
+        })
+        .catch(res => {
+          console.log(res)
+          this.$message.error(res.message)
+          this.init()
+        })
     },
     changeMain (index, item) {
       this.selectedCommodity = item
@@ -384,9 +422,8 @@ export default {
       this.selectedCommodity.startDay = this.dateParse(this.selectedCommodity.startDay)
       this.selectedCommodity.deadline = this.dateParse(this.selectedCommodity.deadline)
       let data = JSON.stringify(this.selectedCommodity)
-      this.$axios.post('/admin/updateCommodity', data)
+      this.$axios.post('1/admin/updateCommodity', data)
         .then(res => {
-          console.log(res)
           if (res.data.code == 200) {
             this.$message.success('修改成功')
             this.dialogVisible = false
@@ -410,11 +447,9 @@ export default {
       this.selectedCommodity.startDay = this.dateParse(this.selectedCommodity.startDay)
       this.selectedCommodity.deadline = this.dateParse(this.selectedCommodity.deadline)
       let data = JSON.stringify(this.selectedCommodity)
-      this.$axios.post('/admin/insertCommodity', data)
+      this.$axios.post('1/admin/insertCommodity', data)
         .then(res => {
-          console.log(res)
           if (res.data.code == 200) {
-            console.log(res)
             this.$message.success('添加成功')
             let commodityId = res.data.data.commodityId
             this.init()
@@ -430,7 +465,7 @@ export default {
               cancelButtonText: '稍后',
               type: 'warning'
             }).then(() => {
-              this.$router.push(`flow/?${commodityId}`)
+              this.$router.push(`flow/?id=${commodityId}`)
             })
           } else {
             this.$message.error(res.message)

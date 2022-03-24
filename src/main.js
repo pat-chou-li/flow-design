@@ -9,7 +9,7 @@ import './static/font'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
 import mynav from './components/mynav/mynav.vue'
-axios.defaults.baseURL = 'http://124.222.21.252:39001'
+axios.defaults.baseURL = 'http://124.222.21.252:3900'
 axios.defaults.headers.post['Content-Type'] = 'application/json'
 axios.interceptors.request.use(
 	(config) => {

@@ -1,6 +1,6 @@
 <template>
   <div class="allContainer">
-    <div class="topContainer">
+    <!-- <div class="topContainer">
       <div class="topleftContainer">
         <img class="bank" src="../../static/bank.png" alt="">
         <div class="deliver"></div>
@@ -8,7 +8,8 @@
         <div class="deliver"></div>
         <div class="serverText">{{serverName}}</div>
       </div>
-    </div>
+    </div> -->
+    <mynav :content="'在这里可以对产品进行服务流程编排，默认连线表示成功后的流向，点击连线可以使连线变红，表示失败后的流向'" :pageName="serverName"></mynav>
     <div class="bottomContainer">
       <div class="left">
         <div class="menuContainer">
@@ -46,7 +47,10 @@
             </div>
           </div>
           <div class="panel">
-            <div class="first" v-if="switchFlag == 1"></div>
+            <div class="first" v-if="switchFlag == 1">
+              <div class="name"> 名称: <input type="text" v-model="flowTemplateName"></div>
+              <div class="btn" @click="saveTemplate()">保存为模板</div>
+            </div>
             <div class="second" v-if="switchFlag == 2">
               <div class="modelTop">
                 <div class="modelText">可用模板</div>
@@ -59,6 +63,7 @@
                 <div class="item" :key="item.id" v-for="(item,index) in currentModelData">
                   <div class="el-icon-copy-document"></div>
                   <div class="itemText" @click="chooseModel(index)">{{item.modelName}}</div>
+                  <div class="delete" @click="deleteTemplate(item)">x</div>
                 </div>
               </div>
             </div>
@@ -100,6 +105,7 @@
 <script>
 import { Addon, Graph, Shape } from '@antv/x6';
 import { create } from "@/utils/create.js"
+import qs from 'qs'
 import place from '../server/place.vue'
 import noAttr from '../server/noAttr.vue'
 const X6 = { Graph }
@@ -108,38 +114,20 @@ export default {
     return {
       currentNode: null,
       currentNodeVm: null,
-      serverName: "基金服务",
-      switchFlag: 2,
+      serverName: "服务编排页面",
+      flowTemplateName: '',
+      switchFlag: 1,
       testRes: '尚未测试',
       modelSearchInput: '',
       modelData: [{
         id: 1,
         modelName: '余额宝',
         graph: ''
-      }, {
-        id: 2,
-        modelName: '余额宝',
-        graph: ''
-      }, {
-        id: 3,
-        modelName: '余额宝',
-        graph: ''
-      }, {
-        id: 4,
-        modelName: '余额宝',
-        graph: ''
-      }, {
-        id: 5,
-        modelName: '余额宝',
-        graph: ''
-      }, {
-        id: 6,
-        modelName: '余额宝',
-        graph: ''
-      }
-      ],
+      }],
       currentModelData: [],
-      graph: null
+      commodityId: '',
+      serviceFlowId: '',
+      firstFlag: false
     };
   },
 
@@ -147,11 +135,13 @@ export default {
     place
   },
 
-  computed: {},
-
+  created: function () {
+    //读取模板
+    this.readTemplate();
+  },
 
   mounted: function () {
-    this.initSearch();
+    this.commodityId = this.$route.query.id
     //配置
     const setting = {
       container: document.getElementById('container'),
@@ -453,100 +443,91 @@ export default {
     const server2 = new Shape.Rect({
       ...serverStyle,
       data: {
-        type: '地域审查',
-        places: []
+        type: '证件审查'
       },
       attrs: {
         rect: { fill: 'white', stroke: '#c0c0c0', strokeWidth: 1 },
-        text: { text: '地域审查', fill: 'black', fontSize: 12 },
+        text: { text: '证件审查', fill: 'black', fontSize: 12 },
       },
     })
     const server3 = new Shape.Rect({
       ...serverStyle,
       data: {
-        type: '地域审查',
-        places: []
+        type: '用户信息检验'
       },
       attrs: {
         rect: { fill: 'white', stroke: '#c0c0c0', strokeWidth: 1 },
-        text: { text: '地域审查', fill: 'black', fontSize: 12 },
+        text: { text: '用户信息检验', fill: 'black', fontSize: 12 },
       },
     })
     const server4 = new Shape.Rect({
       ...serverStyle,
       data: {
-        type: '地域审查',
-        places: []
+        type: '白名单购买控制'
       },
       attrs: {
         rect: { fill: 'white', stroke: '#c0c0c0', strokeWidth: 1 },
-        text: { text: '地域审查', fill: 'black', fontSize: 12 },
+        text: { text: '白名单购买控制', fill: 'black', fontSize: 12 },
       },
     })
     const server5 = new Shape.Rect({
       ...serverStyle,
       data: {
-        type: '地域审查',
-        places: []
+        type: '用户标签控制'
       },
       attrs: {
         rect: { fill: 'white', stroke: '#c0c0c0', strokeWidth: 1 },
-        text: { text: '地域审查', fill: 'black', fontSize: 12 },
+        text: { text: '用户标签控制', fill: 'black', fontSize: 12 },
       },
     })
     const server6 = new Shape.Rect({
       ...serverStyle,
       data: {
-        type: '地域审查',
-        places: []
+        type: '利息计算'
       },
       attrs: {
         rect: { fill: 'white', stroke: '#c0c0c0', strokeWidth: 1 },
-        text: { text: '地域审查', fill: 'black', fontSize: 12 },
+        text: { text: '利息计算', fill: 'black', fontSize: 12 },
       },
     })
     const server7 = new Shape.Rect({
       ...serverStyle,
       data: {
-        type: '地域审查',
-        places: []
+        type: '库存锁定'
       },
       attrs: {
         rect: { fill: 'white', stroke: '#c0c0c0', strokeWidth: 1 },
-        text: { text: '地域审查', fill: 'black', fontSize: 12 },
+        text: { text: '库存锁定', fill: 'black', fontSize: 12 },
       },
     })
     const server8 = new Shape.Rect({
       ...serverStyle,
       data: {
-        type: '地域审查',
-        places: []
+        type: '库存释放'
       },
       attrs: {
         rect: { fill: 'white', stroke: '#c0c0c0', strokeWidth: 1 },
-        text: { text: '地域审查', fill: 'black', fontSize: 12 },
+        text: { text: '库存释放', fill: 'black', fontSize: 12 },
       },
     })
     const server9 = new Shape.Rect({
       ...serverStyle,
       data: {
-        type: '地域审查',
-        places: []
+        type: '库存更新'
       },
       attrs: {
         rect: { fill: 'white', stroke: '#c0c0c0', strokeWidth: 1 },
-        text: { text: '地域审查', fill: 'black', fontSize: 12 },
+        text: { text: '库存更新', fill: 'black', fontSize: 12 },
       },
     })
     const server10 = new Shape.Rect({
       ...serverStyle,
       data: {
-        type: '地域审查',
-        places: []
+        type: '日志录入'
       },
       attrs: {
         rect: { fill: 'white', stroke: '#c0c0c0', strokeWidth: 1 },
-        text: { text: '地域审查', fill: 'black', fontSize: 12 },
+        text: { text: '日志录入', fill: 'black', fontSize: 12 },
       },
     })
     graph.on('edge:click', ({ e, x, y, edge, view }) => {
@@ -580,10 +561,55 @@ export default {
     //此处将原子服务加入左侧列表
     stencil.load([start, success], 'group1')
     stencil.load([server1, server2, server3, server4, server5, server6, server7, server8, server9, server10], 'group2')
+    this.readServiceFlow()
   },
 
 
   methods: {
+    readServiceFlow () {
+      this.axios({
+        method: 'get',
+        url: "3/atom/getServiceFLow",
+        params: { commodityId: this.commodityId }
+      })
+        .then(res => {
+          if (res.data.data != null) {
+            this.serviceFlowId = res.data.data.serviceFlowId
+            console.log(this.serviceFlowId)
+            let graph = res.data.data.hashCode
+            this.graph.fromJSON(JSON.parse(graph))
+          } else {
+            console.log("初次插入！")
+            this.firstFlag = true
+          }
+        })
+        .catch(err => {
+          console.log(err)
+        })
+    },
+    readTemplate () {
+      this.axios.get('3/atom/getAllServiceFlowTemplate')
+        .then(res => {
+          this.modelData = []
+          for (let i = 0; i < res.data.data.length; i++) {
+            this.modelData.push({
+              id: res.data.data[i].serviceFlowTemplateId,
+              modelName: res.data.data[i].flowTemplateName,
+              graph: res.data.data[i].flowContent
+            })
+          }
+          this.initSearch();
+        })
+    },
+    deleteTemplate (item) {
+      this.axios.get('3/atom/deleteServiceFlowTemplate', { params: { 'id': item.id } })
+        .then(res => {
+          if (res.data.code == 200) {
+            this.$message.success('删除成功');
+            this.readTemplate()
+          }
+        })
+    },
     saveData () {
       if (this.currentNode) {
         if (this.currentNode.data.type == "地域审查") {
@@ -593,9 +619,13 @@ export default {
     },
     switchPanel (target) {
       this.switchFlag = target
+      this.readTemplate()
     },
     initSearch () {
-      this.currentModelData = this.modelData
+      this.currentModelData = []
+      for (let i = 0; i < this.modelData.length; i++) {
+        this.currentModelData.push(this.modelData[i])
+      }
     },
     fliter () {
       this.currentModelData = [];
@@ -606,16 +636,35 @@ export default {
       }
     },
     test () {
-      this.modelData[0].graph = this.graph.toJSON()
-      this.saveData()
-      console.log(this.graph.getNodes()[0].data)
+      this.testRes = "测试通过"
+    },
+    saveTemplate () {
+      this.saveData();
+      let graph = this.graph.toJSON()
+      graph = JSON.stringify(graph)
+      let data = qs.stringify({
+        flowTemplateName: this.flowTemplateName,
+        flowContent: graph
+      })
+      this.axios({
+        method: 'post',
+        url: '3/atom/insertServiceFlowTemplate',
+        data: data,
+        headers: { "Content-Type": "application/x-www-form-urlencoded" }
+      }).then(res => {
+        this.$message.success("保存成功")
+      }).catch(res => {
+        this.$message.success("保存失败，请重试")
+      })
     },
     finish () {
+      if (this.commodityId != 0 && !this.commodityId) {
+        this.$message.error("当前不属于任何商品的编排页面！")
+        return
+      }
       this.saveData();
       let nodes = this.graph.getNodes();
       let edges = this.graph.getEdges();
-      console.log(nodes)
-      console.log(edges)
       let map = new Map();
       //将不存在的失败节点推入map
       map.set('fail', {
@@ -668,12 +717,51 @@ export default {
         var key = iterator.next().value;
         obj[key] = map.get(key);
       }
-      let data = JSON.stringify({ startNode, 'states': obj })
-      console.log(data)
-
+      let flowContent = JSON.stringify({ startNode, 'states': obj })
+      let graph = this.graph.toJSON()
+      graph = JSON.stringify(graph)
+      //首次插入
+      if (this.firstFlag) {
+        let data = qs.stringify({
+          commodityId: this.commodityId,
+          flowContent: flowContent,
+          hashCode: graph
+        })
+        this.axios({
+          method: 'post',
+          url: '3/atom/addServiceFLow',
+          data: data,
+          headers: { "Content-Type": "application/x-www-form-urlencoded" }
+        }).then(res => {
+          this.$message.success("保存成功")
+          console.log(res)
+          this.$router.push('/commodity')
+        }).catch(res => {
+          this.$message.success("保存失败，请重试")
+        })
+      } else {
+        let data = qs.stringify({
+          serviceFlowId: this.serviceFlowId,
+          flowContent: flowContent,
+          hashCode: graph
+        })
+        this.axios({
+          method: 'post',
+          url: '3/atom/updateServiceFlow',
+          data: data,
+          headers: { "Content-Type": "application/x-www-form-urlencoded" }
+        }).then(res => {
+          this.$message.success("修改成功")
+          console.log(res)
+          this.$router.push('/commodity')
+        }).catch(res => {
+          this.$message.success("修改失败，请重试")
+        })
+      }
     },
     chooseModel (index) {
-      this.graph.fromJSON(this.currentModelData[index].graph)
+      let graph = JSON.parse(this.currentModelData[index].graph)
+      this.graph.fromJSON(graph)
     }
   }
 }
@@ -785,6 +873,51 @@ export default {
           border-radius: 10px;
           box-shadow: -3px -3px 4px rgba(255, 255, 255, 0.5) !important;
           box-shadow: 3px 3px 4px rgba(222, 222, 222, 0.5) !important;
+          .first {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            .name {
+              margin-top: 2vh;
+              margin-left: 2vw;
+            }
+            input {
+              width: 60%;
+              margin-left: 0.2vw;
+              border-color: #878787;
+              border-style: solid;
+              border-top-width: 0px;
+              border-right-width: 0px;
+              border-bottom-width: 1px;
+              border-left-width: 0px;
+            }
+            input:focus {
+              outline: none;
+              border-color: #878787;
+              border-style: solid;
+              border-top-width: 0px;
+              border-right-width: 0px;
+              border-bottom-width: 1.5px;
+              border-left-width: 0px;
+            }
+            .btn {
+              width: 157px;
+              height: 36px;
+              margin-top: 2vh;
+              line-height: 36px;
+              color: white;
+              border-radius: 5px;
+              text-align: center;
+              cursor: pointer;
+              background: linear-gradient(
+                to right,
+                rgba(255, 0, 0, 0.75),
+                rgba(255, 107, 33, 0.75)
+              );
+            }
+          }
           .second {
             height: 100%;
             width: 100%;
@@ -835,6 +968,14 @@ export default {
                 .itemText {
                   margin-left: 0.5vw;
                   font-size: 10px;
+                  cursor: pointer;
+                }
+                .delete {
+                  float: right;
+                  margin-left: auto;
+                  margin-right: 1vw;
+                  font-size: 10px;
+                  color: red;
                   cursor: pointer;
                 }
               }

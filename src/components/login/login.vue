@@ -144,7 +144,7 @@ export default {
       let data = JSON.stringify(form);
       this.axios({
         method: 'post',
-        url: '/admin/login',
+        url: '1/admin/login',
         data: data
       }).then(res => {
         if (res.data.code == 200) {
@@ -188,7 +188,7 @@ export default {
       let data = JSON.stringify(form);
       this.axios({
         method: 'post',
-        url: '/admin/register',
+        url: '1/admin/register',
         data: data
       }).then(res => {
         if (res.data.code == 200) {

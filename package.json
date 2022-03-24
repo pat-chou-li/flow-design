@@ -2,6 +2,7 @@
 	"name": "flow-design",
 	"version": "0.1.0",
 	"private": true,
+	"homepage": "./",
 	"scripts": {
 		"serve": "vue-cli-service serve",
 		"build": "vue-cli-service build"
@@ -9,8 +10,9 @@
 	"dependencies": {
 		"@antv/x6": "^1.30.0",
 		"axios": "^0.25.0",
-		"core-js": "^3.6.5",
+		"core-js": "3",
 		"element-ui": "^2.15.6",
+		"qs": "^6.10.3",
 		"vue": "^2.6.11",
 		"vue-axios": "^3.4.0",
 		"vue-router": "^3.2.0",
