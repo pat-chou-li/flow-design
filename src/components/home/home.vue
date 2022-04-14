@@ -34,17 +34,19 @@
       <div class="btn" @click="go()">立即使用</div>
     </div>
     <div class="playerContainer">
-      <iframe class="markdown-player" src="http://player.bilibili.com/player.html?aid=16572686&p=7&amp;high_quality=0&amp;danmaku=1&amp;as_wide=0" width="1100" height="520" scrolling="no" border="0"
-        frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
+      <!-- 1100*520 -->
+      <video src="../../static/vedio.mp4" width="1100" height="520" muted autoplay="true">
+        您的浏览器不支持 video 标签。
+      </video>
     </div>
     <div class="deliver">
       <div class="left">
         <div class="shadow"></div>
-        <img src="../../static/无代码新时代.png" alt="">
+        <img src="../../static/newEra.png" alt="">
       </div>
       <div class="right">
         <div class="shadow"></div>
-        <img src="../../static/无代码相关白皮书.png" alt="">
+        <img src="../../static/whiteBook.png" alt="">
       </div>
     </div>
     <div class="flow" id="flow">
@@ -70,7 +72,7 @@
             <div class="headline">
               {{item.name}}
             </div>
-            <div class="detail">
+            <div style="white-space: pre-wrap" class="detail">
               {{item.detail}}
             </div>
           </div>
@@ -91,7 +93,7 @@
       <div class="line4">清晰管理已上线与未上线服务，可增添新服务</div>
     </div>
     <div class="manageImgContainer" id="manage">
-      <img src="../../static/后台管理.png" alt="">
+      <img src="../../static/backend.png" alt="">
     </div>
     <div class="lastImgContainer" id="last">
       <img src="../../static/last.png" alt="">
@@ -105,34 +107,65 @@ export default {
     return {
       atoms: [{
         name: '证件审查接口',
-        detail: '在常用的社交分享组件中，微信（微信好友和朋友圈）、微博、QQ（QQ好友和QQ空间）是三大主要平台，而其中微信凭借高达9.38亿的月活跃用户以及高达29%的日均手机应用使用率，成为各款APP选择最多、排位最靠前的分享途径。即便同样是腾讯系下的QQ，也在QQ空间中加入了分享到微信好友和朋友圈的功能。',
+        detail: "本接口用于校验姓名和身份证号的真实性和一致性，您可以通过输入姓名和身份证号或传入身份证人像面照片提供所需验证信息。\n默认接口请求频率限制：100次/秒\nAPI Explorer 提供了在线调用、签名验证、SDK 代码生成和快速检索接口等能力。\n您可查看每次调用的请求内容和返回结果以及自动生成 SDK 调用示例。",
       }, {
         name: '用户信息检验接口',
-        detail: '',
+        detail: `传入姓名和身份证号，校验两者的真实性和一致性。
+默认接口请求频率限制：100次/秒。
+API Explorer 提供了在线调用、签名验证、SDK 代码生成和快速检索接口等能力。
+您可查看每次调用的请求内容和返回结果以及自动生成 SDK 调用示例。`,
       }, {
         name: '白名单购买控制接口',
-        detail: '',
+        detail: `黑名单启用后，被列入到黑名单的用户（或IP地址、IP包、邮件、病毒等）不能通过。
+在白名单中的用户（或IP地址、IP包、邮件等）会优先通过，不会被当成垃圾邮件拒收，安全性和快捷性都大大提高
+默认接口请求频率限制：100次/秒
+API Explorer 提供了在线调用、签名验证、SDK 代码生成和快速检索接口等能力。
+您可查看每次调用的请求内容和返回结果以及自动生成 SDK 调用示例。`,
       }, {
         name: '地域购买控制接口',
-        detail: '',
+        detail: `指定一个或多个地区，设置不同程度的操作限制
+默认接口请求频率限制：100次/秒
+API Explorer 提供了在线调用、签名验证、SDK 代码生成和快速检索接口等能力。
+您可查看每次调用的请求内容和返回结果以及自动生成 SDK 调用示例。`,
       }, {
         name: '用户标签控制接口',
-        detail: '',
+        detail: `可以使用用户标签管理的相关接口，实现对公众号的标签进行创建、查询、修改、删除等操作，
+也可以对用户进行打标签、取消标签等操作。
+默认接口请求频率限制：100次/秒
+API Explorer 提供了在线调用、签名验证、SDK 代码生成和快速检索接口等能力。
+您可查看每次调用的请求内容和返回结果以及自动生成 SDK 调用示例。`,
       }, {
         name: '利息计算接口',
-        detail: '',
+        detail: `依据用户所买产品及购入金额，通过大数据分析预测，计算得出用户在不同阶段获得的利息
+默认接口请求频率限制：1次/秒
+API Explorer 提供了在线调用、签名验证、SDK 代码生成和快速检索接口等能力。
+您可查看每次调用的请求内容和返回结果以及自动生成 SDK 调用示例。`,
       }, {
         name: '库存锁定接口',
-        detail: '',
+        detail: `在用户在产品订单页面确定数额后为付款成功的十分分钟内将该部分库存划为该用户所有
+（注：在秒杀类产品中不适用）
+默认接口请求频率限制：1次/秒
+API Explorer 提供了在线调用、签名验证、SDK 代码生成和快速检索接口等能力。
+您可查看每次调用的请求内容和返回结果以及自动生成 SDK 调用示例。`,
       }, {
         name: '库存释放接口',
-        detail: '',
+        detail: `用户在订单页面中确定数额后十分钟内未付款成功，则该部分库存释放
+默认接口请求频率限制：1次/秒
+API Explorer 提供了在线调用、签名验证、SDK 代码生成和快速检索接口等能力。
+您可查看每次调用的请求内容和返回结果以及自动生成 SDK 调用示例。`,
       }, {
         name: '库存更新接口',
-        detail: '',
+        detail: `用户在订单页中确认数额付款成功后，即将该部分库存更新
+默认接口请求频率限制：1次/秒
+API Explorer 提供了在线调用、签名验证、SDK 代码生成和快速检索接口等能力。
+您可查看每次调用的请求内容和返回结果以及自动生成 SDK 调用示例。`,
       }, {
         name: '日志录入接口',
-        detail: '',
+        detail: `在用户操作完一个流程后，即将改过程，如时间，配置等录入至系统用户日志中记录下来
+用户在订单页中确认数额付款成功后，即将该部分库存更新
+默认接口请求频率限制：10次/秒
+API Explorer 提供了在线调用、签名验证、SDK 代码生成和快速检索接口等能力。
+您可查看每次调用的请求内容和返回结果以及自动生成 SDK 调用示例。`,
       }],
       activeNum: 0
     };

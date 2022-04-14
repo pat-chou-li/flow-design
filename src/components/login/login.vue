@@ -39,7 +39,7 @@
           <img class="monkey" src="../../static/monkey.png" alt="">
           <div class="textContainer">
             <img class="text" src="../../static/湖南三湘银行.png" alt="">
-            <img class="text2" src="../../static/老百姓自己的银行.png" alt="">
+            <img class="text2" src="../../static/selfBank.png" alt="">
           </div>
         </div>
       </div>

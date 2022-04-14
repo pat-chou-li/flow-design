@@ -21,7 +21,7 @@
           </span>
           <el-dropdown-menu slot="dropdown">
             <el-dropdown-item command="home">首页</el-dropdown-item>
-            <!-- <el-dropdown-item command="usermsg">用户信息</el-dropdown-item> -->
+            <el-dropdown-item command="data">数据分析</el-dropdown-item>
             <el-dropdown-item command="commodity">我的产品</el-dropdown-item>
             <el-dropdown-item command="logOut" divided>注销</el-dropdown-item>
           </el-dropdown-menu>
@@ -50,6 +50,9 @@ export default {
         this.logOut();
       if (command == "home") {
         this.backHome();
+      }
+      if (command == "data") {
+        this.$router.push('/data')
       }
     },
     logOut () {

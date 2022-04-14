@@ -9,6 +9,7 @@
 	},
 	"dependencies": {
 		"@antv/x6": "^1.30.0",
+		"@jiaminghi/data-view": "^2.10.0",
 		"axios": "^0.25.0",
 		"core-js": "3",
 		"element-ui": "^2.15.6",

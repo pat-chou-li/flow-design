@@ -23,23 +23,27 @@
           </el-dropdown-menu>
         </el-dropdown>
       </div>
-      <div class="sortItem">已上架
+      <div class="sortItem">是否上架
         <el-dropdown @command="sortByPublic" size="mini">
           <span class="el-dropdown-link">
             <i class="el-icon-arrow-down el-icon--right icon"></i>
           </span>
           <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item>优先</el-dropdown-item>
+            <el-dropdown-item command="0">已上架</el-dropdown-item>
+            <el-dropdown-item command="1">未上架</el-dropdown-item>
+            <el-dropdown-item command="2">全部</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
       </div>
-      <div class="sortItem">未上架
+      <div class="sortItem">产品类型
         <el-dropdown @command="sortByUnPublic" size="mini">
           <span class="el-dropdown-link">
             <i class="el-icon-arrow-down el-icon--right icon"></i>
           </span>
           <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item>优先</el-dropdown-item>
+            <el-dropdown-item>存款</el-dropdown-item>
+            <el-dropdown-item>贷款</el-dropdown-item>
+            <el-dropdown-item>基金</el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
       </div>
@@ -116,12 +120,12 @@
           <input id="number" disabled="disabled" type="text" v-model="selectedCommodity.commodityId">
         </div>
         <div class="inputItem">
-          <div class="label">年化利率</div>
-          <input type="text" v-model="selectedCommodity.yearInterestRate">
+          <div class="label">年化利率(%)</div>
+          <input type="text" v-model.number="selectedCommodity.yearInterestRate">
         </div>
         <div class="inputItem">
           <div class="label">起存金额(元)</div>
-          <input type="text" v-model="selectedCommodity.startMoney">
+          <input type="number" v-model.number="selectedCommodity.startMoney">
         </div>
         <div class="inputItem">
           <div class="label">产品期限</div>
@@ -129,11 +133,11 @@
         </div>
         <div class="inputItem">
           <div class="label">单人限额(元)</div>
-          <input type="text" v-model="selectedCommodity.personLimit">
+          <input type="text" v-model.number="selectedCommodity.personLimit">
         </div>
         <div class="inputItem">
           <div class="label">单日限额(元)</div>
-          <input type="text" v-model="selectedCommodity.dayLimit">
+          <input type="text" v-model.number="selectedCommodity.dayLimit">
         </div>
         <div class="inputItem">
           <div class="label">起息日(精确到天)</div>
@@ -149,7 +153,7 @@
         </div>
         <div class="inputItem">
           <div class="label">递增金额(元)</div>
-          <input type="text" v-model="selectedCommodity.increaseMoney">
+          <input type="text" v-model.number="selectedCommodity.increaseMoney">
         </div>
       </div>
       <div slot="footer" class="dialog-footer">
@@ -174,12 +178,12 @@
           <input id="number" disabled="disabled" type="text" v-model="selectedCommodity.commodityId">
         </div>
         <div class="inputItem">
-          <div class="label">年化利率</div>
-          <input type="text" v-model="selectedCommodity.yearInterestRate">
+          <div class="label">年化利率(%)</div>
+          <input type="text" v-model.number="selectedCommodity.yearInterestRate">
         </div>
         <div class="inputItem">
           <div class="label">起存金额(元)</div>
-          <input type="text" v-model="selectedCommodity.startMoney">
+          <input type="text" v-model.number="selectedCommodity.startMoney">
         </div>
         <div class="inputItem">
           <div class="label">产品期限</div>
@@ -187,11 +191,11 @@
         </div>
         <div class="inputItem">
           <div class="label">单人限额(元)</div>
-          <input type="text" v-model="selectedCommodity.personLimit">
+          <input type="text" v-model.number="selectedCommodity.personLimit">
         </div>
         <div class="inputItem">
           <div class="label">单日限额(元)</div>
-          <input type="text" v-model="selectedCommodity.dayLimit">
+          <input type="text" v-model.number="selectedCommodity.dayLimit">
         </div>
         <div class="inputItem">
           <div class="label">起息日(精确到天)</div>
@@ -207,7 +211,7 @@
         </div>
         <div class="inputItem">
           <div class="label">递增金额(元)</div>
-          <input type="text" v-model="selectedCommodity.increaseMoney">
+          <input type="text" v-model.number="selectedCommodity.increaseMoney">
         </div>
       </div>
       <div slot="footer" class="dialog-footer">
@@ -261,7 +265,7 @@ export default {
             this.allCommodity[i].showDay = this.dateParse(this.allCommodity[i].createdTime)
             this.allCommodity[i].startDay = this.dateParse(this.allCommodity[i].startDay)
             this.allCommodity[i].deadline = this.dateParse(this.allCommodity[i].deadline)
-            let _now = new Date().getTime() - new Date('2010/1/1').getTime()
+            let _now = new Date(this.allCommodity[i].startDay).getTime() - new Date('2015/1/1').getTime()
             let _last = new Date(this.allCommodity[i].deadline).getTime() - new Date('2020/1/1').getTime()
             let per = _last / _now <= 1 ? _last / _now : _now / _last
             this.allCommodity[i].percentage = Math.abs(per * 100).toFixed(0)
@@ -338,13 +342,34 @@ export default {
         this.groupCommodity(this.allCommodity)
       }
     },
-    sortByPublic () {
-      this.allCommodity.sort(
-        (a, b) => {
-          return -(a.isPublished - b.isPublished)
+    sortByPublic (type) {
+      //   this.allCommodity.sort(
+      //     (a, b) => {
+      //       return -(a.isPublished - b.isPublished)
+      //     }
+      //   )
+      // 已上架
+      if (type == 0) {
+        this.currentCommodity = [];
+        let tempAllCommodity = [];
+        for (let i = 0; i < this.allCommodity.length; i++) {
+          if (this.allCommodity[i].isPublished == 1) {
+            tempAllCommodity.push(this.allCommodity[i]);
+          }
         }
-      )
-      this.groupCommodity(this.allCommodity)
+        this.groupCommodity(tempAllCommodity);
+      } else if (type == 1) {
+        //未上架
+        this.currentCommodity = [];
+        let tempAllCommodity = [];
+        for (let i = 0; i < this.allCommodity.length; i++) {
+          if (this.allCommodity[i].isPublished == 0) {
+            tempAllCommodity.push(this.allCommodity[i]);
+          }
+        }
+        this.groupCommodity(tempAllCommodity);
+      } else
+        this.groupCommodity(this.allCommodity)
     },
     sortByUnPublic () {
       this.allCommodity.sort(
@@ -363,19 +388,17 @@ export default {
       if (isPublished) {
         return
       }
-      let data = {
-        commodityId: this.currentCommodity[index].commodityId,
-        isPublished: 1
-      }
-      data = JSON.stringify(data)
-      console.log(data)
-      this.$axios.post('1/admin/updateCommodity', data)
+      this.$axios({
+        method: 'get',
+        url: '1/admin/publishCommodity',
+        params: { commodityId: this.currentCommodity[index].commodityId }
+      })
         .then(res => {
           if (res.data.code == 200) {
             this.currentCommodity[index].isPublished = 1
             this.$message.success('上架成功')
           } else {
-            this.$message.error(res.message)
+            this.$message.error(res.data.message)
           }
         })
         .catch(res => {
@@ -446,6 +469,8 @@ export default {
     addItemConfirm () {
       this.selectedCommodity.startDay = this.dateParse(this.selectedCommodity.startDay)
       this.selectedCommodity.deadline = this.dateParse(this.selectedCommodity.deadline)
+      this.selectedCommodity.isPublished = 0;
+      console.log(this.selectedCommodity)
       let data = JSON.stringify(this.selectedCommodity)
       this.$axios.post('1/admin/insertCommodity', data)
         .then(res => {

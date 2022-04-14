@@ -10,6 +10,9 @@
       </div>
     </div> -->
     <mynav :content="'在这里可以对产品进行服务流程编排，默认连线表示成功后的流向，点击连线可以使连线变红，表示失败后的流向'" :pageName="serverName"></mynav>
+    <div class="changeButton">
+      <img src="../../static/changeToPintu.png" alt="">
+    </div>
     <div class="bottomContainer">
       <div class="left">
         <div class="menuContainer">
@@ -118,6 +121,7 @@ export default {
       flowTemplateName: '',
       switchFlag: 1,
       testRes: '尚未测试',
+      testFlag: false,
       modelSearchInput: '',
       modelData: [{
         id: 1,
@@ -531,12 +535,13 @@ export default {
       },
     })
     graph.on('edge:click', ({ e, x, y, edge, view }) => {
-      if (edge.type == false) {
+      if (edge.data == undefined) edge.data = { type: true }
+      if (edge.data.type == false) {
         edge.attr('line/stroke', 'black')
-        edge.type = true
+        edge.data.type = true
       } else {
         edge.attr('line/stroke', 'red')
-        edge.type = false
+        edge.data.type = false
       }
     })
     //更改选定节点
@@ -575,7 +580,6 @@ export default {
         .then(res => {
           if (res.data.data != null) {
             this.serviceFlowId = res.data.data.serviceFlowId
-            console.log(this.serviceFlowId)
             let graph = res.data.data.hashCode
             this.graph.fromJSON(JSON.parse(graph))
           } else {
@@ -584,7 +588,7 @@ export default {
           }
         })
         .catch(err => {
-          console.log(err)
+          this.$message.error("未知异常！")
         })
     },
     readTemplate () {
@@ -636,7 +640,43 @@ export default {
       }
     },
     test () {
-      this.testRes = "测试通过"
+      this.saveData();
+      //提取节点数组
+      let res = this.createFinishData();
+      let flowContent = res.flowContent;
+      flowContent = JSON.parse(flowContent)
+      console.log(flowContent)
+      if (flowContent.startNode == undefined) {
+        this.testRes = "缺少起始节点！"
+        this.testFlag = false;
+        return
+      }
+      let startNode = flowContent.startNode
+      let nodesArr = flowContent.states;
+      let queue = [];
+      queue.unshift(nodesArr[startNode]);
+      while (queue.length) {
+        //下一个节点，包括next和failnext数据
+        let node = queue.pop();
+        if (node.data.type == "成功") {
+          this.testRes = "测试通过"
+          this.testFlag = true
+          return
+        }
+        let next = ""
+        if (node.next == "fail" || node.next == null) {
+          next = node.failNext
+        } else {
+          next = node.next
+        }
+        console.log(next)
+        if (next != null) {
+          console.log(nodesArr[next])
+          queue.unshift(nodesArr[next])
+        }
+      }
+      this.testRes = "测试不通过！"
+      this.testFlag = false
     },
     saveTemplate () {
       this.saveData();
@@ -657,11 +697,7 @@ export default {
         this.$message.success("保存失败，请重试")
       })
     },
-    finish () {
-      if (this.commodityId != 0 && !this.commodityId) {
-        this.$message.error("当前不属于任何商品的编排页面！")
-        return
-      }
+    createFinishData () {
       this.saveData();
       let nodes = this.graph.getNodes();
       let edges = this.graph.getEdges();
@@ -698,7 +734,8 @@ export default {
       for (let i = 0; i < edges.length; i++) {
         let source = edges[i].store.data.source.cell;
         let target = edges[i].store.data.target.cell;
-        let type = edges[i].type;
+        if (edges[i].data == undefined) edges[i].data = { type: true }
+        let type = edges[i].data.type;
         if (type == undefined) type = true;
         //获取节点的data，加入next属性和failNext属性
         let sourceData = map.get(source);
@@ -720,6 +757,19 @@ export default {
       let flowContent = JSON.stringify({ startNode, 'states': obj })
       let graph = this.graph.toJSON()
       graph = JSON.stringify(graph)
+      return {
+        flowContent, graph
+      }
+    },
+    finish () {
+      if (this.commodityId != 0 && !this.commodityId) {
+        this.$message.error("当前不属于任何商品的编排页面！")
+        return
+      }
+      let res = this.createFinishData()
+      console.log(res)
+      let flowContent = res.flowContent
+      let graph = res.graph
       //首次插入
       if (this.firstFlag) {
         let data = qs.stringify({
@@ -781,6 +831,29 @@ export default {
 </style>
 
 <style lang='scss' scoped>
+.changeButton {
+  position: fixed;
+  width: 50px;
+  height: 35px;
+  right: 17vw;
+  top: 7vh;
+  z-index: 999;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 1);
+  box-shadow: -3px -3px 8px 5px rgba(255, 255, 255, 0.5),
+    2px 2px 8px 4px rgba(207, 207, 207, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  &:hover {
+    background: rgb(234, 232, 232);
+  }
+  img {
+    width: 25px;
+    height: 31px;
+  }
+}
 .allContainer {
   .topContainer {
     background: rgba(255, 255, 255, 1);

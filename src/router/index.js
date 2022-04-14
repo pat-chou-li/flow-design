@@ -4,6 +4,7 @@ import flow from '../components/flow/flow.vue'
 import login from '../components/login/login.vue'
 import commodity from '../components/commodity/commodity.vue'
 import home from '../components/home/home'
+import data from '../views/BigData1.vue'
 
 Vue.use(VueRouter)
 
@@ -33,15 +34,11 @@ const routes = [
 		name: 'commodity',
 		component: commodity,
 	},
-
-	//   {
-	//     path: '/about',
-	//     name: 'About',
-	//     // route level code-splitting
-	//     // this generates a separate chunk (about.[hash].js) for this route
-	//     // which is lazy-loaded when the route is visited.
-	//     component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
-	//   }
+	{
+		path: '/data',
+		name: 'data',
+		component: data,
+	},
 ]
 
 const router = new VueRouter({
@@ -53,6 +50,7 @@ const router = new VueRouter({
 //不需要登录也能访问的路由白名单
 const whiteList = ['/login', '/register', '/home', '/']
 router.beforeEach((to, from, next) => {
+	document.title = 'Mapiser服务编排系统'
 	if (!whiteList.includes(to.path)) {
 		const token = window.localStorage.getItem('token')
 		if (!token || token === 'undefined') {
@@ -67,5 +65,4 @@ router.beforeEach((to, from, next) => {
 	}
 	next()
 })
-
 export default router
